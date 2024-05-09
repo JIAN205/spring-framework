@@ -19,6 +19,8 @@ package org.springframework.beans.factory.parsing;
 /**
  * Empty implementation of the {@link ReaderEventListener} interface,
  * providing no-op implementations of all callback methods.
+ * <p>
+ * Spring提供的相关事件的空实现，作为拓展点留给开发人员自定义
  *
  * @author Juergen Hoeller
  * @since 2.0
@@ -33,6 +35,7 @@ public class EmptyReaderEventListener implements ReaderEventListener {
 	@Override
 	public void componentRegistered(ComponentDefinition componentDefinition) {
 		// no-op
+		System.out.println("Bean完成注册之后调用的事件");
 	}
 
 	@Override

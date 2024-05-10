@@ -309,16 +309,19 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 				markBeanAsCreated(beanName);
 			}
 
+			// 至此没有在任何缓存/父容器中获取到Bean开始创建Bean
 			StartupStep beanCreation = this.applicationStartup.start("spring.beans.instantiate")
 					.tag("beanName", name);
 			try {
 				if (requiredType != null) {
 					beanCreation.tag("beanType", requiredType::toString);
 				}
+				// 合并Bean的定义信息(合并BeanDefinition信息)(合并子父Bean信息)
+				// 对于没有子父Bean的其实在获取Bean的定义信息准备创建Bean
 				RootBeanDefinition mbd = getMergedLocalBeanDefinition(beanName);
 				checkMergedBeanDefinition(mbd, beanName, args);
 
-				// Guarantee initialization of beans that the current bean depends on.
+				// Guarantee initialization of beans that the current bean depends on. 处理depends-on属性
 				String[] dependsOn = mbd.getDependsOn();
 				if (dependsOn != null) {
 					for (String dep : dependsOn) {
@@ -337,8 +340,9 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 					}
 				}
 
-				// Create bean instance.
+				// Create bean instance. 创建Bean实例
 				if (mbd.isSingleton()) {
+					// 情况1: 创建单例Bean
 					sharedInstance = getSingleton(beanName, () -> {
 						try {
 							return createBean(beanName, mbd, args);
@@ -355,6 +359,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 				}
 
 				else if (mbd.isPrototype()) {
+					// 情况2: 创建多例Bean
 					// It's a prototype -> create a new instance.
 					Object prototypeInstance = null;
 					try {
@@ -368,6 +373,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 				}
 
 				else {
+					// 情况3: 创建其他作用域Bean
 					String scopeName = mbd.getScope();
 					if (!StringUtils.hasLength(scopeName)) {
 						throw new IllegalStateException("No scope name defined for bean '" + beanName + "'");
@@ -1360,10 +1366,12 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 	 */
 	protected RootBeanDefinition getMergedLocalBeanDefinition(String beanName) throws BeansException {
 		// Quick check on the concurrent map first, with minimal locking.
+		// 判断BeanDefinition信息是否已经合并如果合并则直接返回RootBeanDefinition
 		RootBeanDefinition mbd = this.mergedBeanDefinitions.get(beanName);
 		if (mbd != null && !mbd.stale) {
 			return mbd;
 		}
+		// 如果没有合并则执行合并操作并返回
 		return getMergedBeanDefinition(beanName, getBeanDefinition(beanName));
 	}
 
@@ -1406,8 +1414,10 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 
 			if (mbd == null || mbd.stale) {
 				previous = mbd;
+				// 查看Bean是否有parent属性
 				if (bd.getParentName() == null) {
 					// Use copy of given root bean definition.
+					// 如果没有该属性直接拷贝信息到RootBeanDefinition中
 					if (bd instanceof RootBeanDefinition) {
 						mbd = ((RootBeanDefinition) bd).cloneBeanDefinition();
 					}
@@ -1416,11 +1426,12 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 					}
 				}
 				else {
-					// Child bean definition: needs to be merged with parent.
+					// Child bean definition: needs to be merged with parent. 需要去合并
 					BeanDefinition pbd;
 					try {
 						String parentBeanName = transformedBeanName(bd.getParentName());
 						if (!beanName.equals(parentBeanName)) {
+							// 获取父Bean的BeanDefinition信息
 							pbd = getMergedBeanDefinition(parentBeanName);
 						}
 						else {
@@ -1439,8 +1450,9 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 						throw new BeanDefinitionStoreException(bd.getResourceDescription(), beanName,
 								"Could not resolve parent bean definition '" + bd.getParentName() + "'", ex);
 					}
-					// Deep copy with overridden values.
+					// Deep copy(深拷贝) with overridden values.
 					mbd = new RootBeanDefinition(pbd);
+					// 子父BeanDefinition合并
 					mbd.overrideFrom(bd);
 				}
 

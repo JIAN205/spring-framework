@@ -632,6 +632,11 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			       1. Spring内置转换器 完成类似 String -> int
 			       2. 自定义转换器 完成类似 String -> Date */
 			populateBean(beanName, mbd, instanceWrapper);
+			/* 完成初始化Bean的操作包括以下操作(按顺序列出)
+			    1. 各种Aware接口方法的调用实现容器注入
+			    2. 执行Bean的前置处理(实现BeanPostProcessor接口)
+			    3. 执行初始化方法(由init-method指定或者实现InitializingBean接口)
+			    4. 执行Bean的后置操作(实现BeanPostProcessor接口) */
 			exposedObject = initializeBean(beanName, exposedObject, mbd);
 		}
 		catch (Throwable ex) {
@@ -1820,6 +1825,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 	 * @see #applyBeanPostProcessorsAfterInitialization
 	 */
 	protected Object initializeBean(String beanName, Object bean, @Nullable RootBeanDefinition mbd) {
+		// 安全校验
 		if (System.getSecurityManager() != null) {
 			AccessController.doPrivileged((PrivilegedAction<Object>) () -> {
 				invokeAwareMethods(beanName, bean);
@@ -1827,15 +1833,19 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			}, getAccessControlContext());
 		}
 		else {
+			// 容器注入: 调用实现的相关Aware接口的方法
+			// 常见接口: BeanNameAware BeanFactoryAware
 			invokeAwareMethods(beanName, bean);
 		}
 
 		Object wrappedBean = bean;
 		if (mbd == null || !mbd.isSynthetic()) {
+			// 执行Bean的前置处理操作
 			wrappedBean = applyBeanPostProcessorsBeforeInitialization(wrappedBean, beanName);
 		}
 
 		try {
+			// 执行Bean的初始化方法
 			invokeInitMethods(beanName, wrappedBean, mbd);
 		}
 		catch (Throwable ex) {
@@ -1844,6 +1854,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 					beanName, "Invocation of init method failed", ex);
 		}
 		if (mbd == null || !mbd.isSynthetic()) {
+			// 执行Bean的后置处理操作
 			wrappedBean = applyBeanPostProcessorsAfterInitialization(wrappedBean, beanName);
 		}
 

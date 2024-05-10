@@ -210,6 +210,7 @@ public abstract class BeanUtils {
 						argsWithDefaultValues[i] = args[i];
 					}
 				}
+				// ctor即Constructor对象调用其newInstance方法创建对象
 				return ctor.newInstance(argsWithDefaultValues);
 			}
 		}

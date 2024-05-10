@@ -109,6 +109,7 @@ class BeanDefinitionValueResolver {
 		// We must check each value to see whether it requires a runtime reference
 		// to another bean to be resolved.
 		if (value instanceof RuntimeBeanReference) {
+			// 解析ref标签获取对应的Bean对象
 			RuntimeBeanReference ref = (RuntimeBeanReference) value;
 			return resolveReference(argName, ref);
 		}
@@ -304,6 +305,7 @@ class BeanDefinitionValueResolver {
 			Object bean;
 			Class<?> beanType = ref.getBeanType();
 			if (ref.isToParent()) {
+				// 尝试从父容器中获取Bean对象
 				BeanFactory parent = this.beanFactory.getParentBeanFactory();
 				if (parent == null) {
 					throw new BeanCreationException(
@@ -327,6 +329,7 @@ class BeanDefinitionValueResolver {
 				}
 				else {
 					resolvedName = String.valueOf(doEvaluate(ref.getBeanName()));
+					// 递归调用getBean方法获取依赖的Bean
 					bean = this.beanFactory.getBean(resolvedName);
 				}
 				this.beanFactory.registerDependentBean(resolvedName, this.beanName);

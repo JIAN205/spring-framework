@@ -1438,7 +1438,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			pvs = newPvs;
 		}
 
-		// 获取是否进行了注解配置(使用@Autowired和@Value)
+		// 需要满足使用注解构建的Context并且配置注解进行依赖注入如@Autowired和@Value此时才会为true
 		boolean hasInstAwareBpps = hasInstantiationAwareBeanPostProcessors();
 		boolean needsDepCheck = (mbd.getDependencyCheck() != AbstractBeanDefinition.DEPENDENCY_CHECK_NONE);
 
@@ -1449,12 +1449,13 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			}
 			// 通过BeanPostProcessor的实现类AutowiredAnnotationBeanPostProcessor实现注解注入
 			for (InstantiationAwareBeanPostProcessor bp : getBeanPostProcessorCache().instantiationAware) {
+				// 处理属性注入的核心代码
 				PropertyValues pvsToUse = bp.postProcessProperties(pvs, bw.getWrappedInstance(), beanName);
 				if (pvsToUse == null) {
 					if (filteredPds == null) {
 						filteredPds = filterPropertyDescriptorsForDependencyCheck(bw, mbd.allowCaching);
 					}
-					// 处理的核心代码
+					// 处理set方法注入的核心代码转换为类似XML中的PropertyValue对象
 					pvsToUse = bp.postProcessPropertyValues(pvs, filteredPds, bw.getWrappedInstance(), beanName);
 					if (pvsToUse == null) {
 						return;
@@ -1471,7 +1472,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			checkDependencies(beanName, mbd, filteredPds, pvs);
 		}
 
-		// 基于XML的属性注入
+		// XML文件注入的地方(本质是使用set方法注入)
 		if (pvs != null) {
 			applyPropertyValues(beanName, mbd, bw, pvs);
 		}

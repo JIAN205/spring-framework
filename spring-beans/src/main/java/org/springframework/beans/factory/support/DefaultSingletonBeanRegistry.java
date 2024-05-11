@@ -190,6 +190,9 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 			if (singletonObject == null && allowEarlyReference) {
 				synchronized (this.singletonObjects) {
 					// Consistent creation of early reference within full singleton lock
+					// 使用双重检查锁的单例模式确保获取的Bean是单例
+					// 多线程中保证单例需要加锁该模式保证只在第一次创建实例时加锁
+					// 二次校验防止获取锁之后其他线程创建了对象可以及时释放锁(多线程下执行顺序不确定)
 					singletonObject = this.singletonObjects.get(beanName);
 					if (singletonObject == null) {
 						singletonObject = this.earlySingletonObjects.get(beanName);
@@ -198,6 +201,8 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 							ObjectFactory<?> singletonFactory = this.singletonFactories.get(beanName);
 							if (singletonFactory != null) {
 								singletonObject = singletonFactory.getObject();
+								// 实际调用存储的产生代理对象的方法并移除在三级缓存中的存在
+								// 最后将产生的代理对象存入二级缓存中(earlySingletonObjects)
 								this.earlySingletonObjects.put(beanName, singletonObject);
 								this.singletonFactories.remove(beanName);
 							}
@@ -268,6 +273,7 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 					afterSingletonCreation(beanName);
 				}
 				if (newSingleton) {
+					// 将新对象添加到单例池中(一级缓存)(singletonObjects)
 					addSingleton(beanName, singletonObject);
 				}
 			}

@@ -613,13 +613,18 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 
 		// Eagerly cache singletons to be able to resolve circular references
 		// even when triggered by lifecycle interfaces like BeanFactoryAware.
-		boolean earlySingletonExposure = (mbd.isSingleton() && this.allowCircularReferences &&
-				isSingletonCurrentlyInCreation(beanName));
+		boolean earlySingletonExposure = (mbd.isSingleton()
+				&& this.allowCircularReferences
+				&& isSingletonCurrentlyInCreation(beanName));
 		if (earlySingletonExposure) {
 			if (logger.isTraceEnabled()) {
 				logger.trace("Eagerly caching bean '" + beanName +
 						"' to allow for resolving potential circular references");
 			}
+			// 解决单例对象的循环依赖问题(通过set方法)
+			// 将当前未完成属性注入和初始化的对象放入三级缓存中(singletonFactories)
+			// 调用getEarlyBeanReference产生Bean的代理对象
+			// 适应Bean在初始化阶段产生代理对象的情况 保证依赖的该Bean的实例注入的是代理对象而不是本身
 			addSingletonFactory(beanName, () -> getEarlyBeanReference(beanName, mbd, bean));
 		}
 
@@ -677,6 +682,8 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		}
 
 		// Register bean as disposable.
+		// 将Bean中定义的关闭方法注册到Context的关闭事件
+		// 关闭方法由destroy-method属性指定或者实现DisposableBean接口
 		try {
 			registerDisposableBeanIfNecessary(beanName, bean, mbd);
 		}

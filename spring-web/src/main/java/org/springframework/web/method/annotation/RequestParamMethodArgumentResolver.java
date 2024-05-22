@@ -126,6 +126,7 @@ public class RequestParamMethodArgumentResolver extends AbstractNamedValueMethod
 	@Override
 	public boolean supportsParameter(MethodParameter parameter) {
 		if (parameter.hasParameterAnnotation(RequestParam.class)) {
+			// 判断当前参数是否被@RequestParam注解修饰
 			if (Map.class.isAssignableFrom(parameter.nestedIfOptional().getNestedParameterType())) {
 				RequestParam requestParam = parameter.getParameterAnnotation(RequestParam.class);
 				return (requestParam != null && StringUtils.hasText(requestParam.name()));
@@ -178,8 +179,10 @@ public class RequestParamMethodArgumentResolver extends AbstractNamedValueMethod
 			}
 		}
 		if (arg == null) {
+			// 原生Servlet获取参数的方法
 			String[] paramValues = request.getParameterValues(name);
 			if (paramValues != null) {
+				// 字符串数组长度为1时只返回第一个值
 				arg = (paramValues.length == 1 ? paramValues[0] : paramValues);
 			}
 		}

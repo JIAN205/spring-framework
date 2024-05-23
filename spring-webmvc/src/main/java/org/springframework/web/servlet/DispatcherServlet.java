@@ -1097,9 +1097,11 @@ public class DispatcherServlet extends FrameworkServlet {
 			processDispatchResult(processedRequest, response, mappedHandler, mv, dispatchException);
 		}
 		catch (Exception ex) {
+			// 出现异常时同样提前执行最终拦截方法
 			triggerAfterCompletion(processedRequest, response, mappedHandler, ex);
 		}
 		catch (Throwable err) {
+			// 出现异常时同样提前执行最终拦截方法
 			triggerAfterCompletion(processedRequest, response, mappedHandler,
 					new NestedServletException("Handler processing failed", err));
 		}
@@ -1174,7 +1176,8 @@ public class DispatcherServlet extends FrameworkServlet {
 		}
 
 		if (mappedHandler != null) {
-			// Exception (if any) is already handled..
+			// Exception (if any) is already handled...
+			// 渲染视图完成之后执行最终拦截方法
 			mappedHandler.triggerAfterCompletion(request, response, null);
 		}
 	}

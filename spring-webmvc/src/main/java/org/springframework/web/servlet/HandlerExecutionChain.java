@@ -143,9 +143,11 @@ public class HandlerExecutionChain {
 	 * that this interceptor has already dealt with the response itself.
 	 */
 	boolean applyPreHandle(HttpServletRequest request, HttpServletResponse response) throws Exception {
+		// 遍历当前拦截器链(列表)按顺序执行其中的前置拦截方法
 		for (int i = 0; i < this.interceptorList.size(); i++) {
 			HandlerInterceptor interceptor = this.interceptorList.get(i);
 			if (!interceptor.preHandle(request, response, this.handler)) {
+				// 前置拦截器方法执行失败则提前执行所有的最终拦截方法
 				triggerAfterCompletion(request, response, null);
 				return false;
 			}
@@ -159,7 +161,7 @@ public class HandlerExecutionChain {
 	 */
 	void applyPostHandle(HttpServletRequest request, HttpServletResponse response, @Nullable ModelAndView mv)
 			throws Exception {
-
+		// 注意此时是i--过程从最后一个拦截器方法向前遍历执行其后置拦截方法
 		for (int i = this.interceptorList.size() - 1; i >= 0; i--) {
 			HandlerInterceptor interceptor = this.interceptorList.get(i);
 			interceptor.postHandle(request, response, this.handler, mv);
@@ -172,6 +174,7 @@ public class HandlerExecutionChain {
 	 * has successfully completed and returned true.
 	 */
 	void triggerAfterCompletion(HttpServletRequest request, HttpServletResponse response, @Nullable Exception ex) {
+		// 注意此时是i--过程从最后一个成功执行前置拦截器方法的拦截器向前遍历执行其最终拦截方法
 		for (int i = this.interceptorIndex; i >= 0; i--) {
 			HandlerInterceptor interceptor = this.interceptorList.get(i);
 			try {

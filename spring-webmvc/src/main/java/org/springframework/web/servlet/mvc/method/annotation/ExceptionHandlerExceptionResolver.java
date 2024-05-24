@@ -401,9 +401,11 @@ public class ExceptionHandlerExceptionResolver extends AbstractHandlerMethodExce
 		}
 
 		if (this.argumentResolvers != null) {
+			// 设置请求参数处理器
 			exceptionHandlerMethod.setHandlerMethodArgumentResolvers(this.argumentResolvers);
 		}
 		if (this.returnValueHandlers != null) {
+			// 设置返回值处理器
 			exceptionHandlerMethod.setHandlerMethodReturnValueHandlers(this.returnValueHandlers);
 		}
 
@@ -423,8 +425,10 @@ public class ExceptionHandlerExceptionResolver extends AbstractHandlerMethodExce
 				exToExpose = (cause != exToExpose ? cause : null);
 			}
 			Object[] arguments = new Object[exceptions.size() + 1];
-			exceptions.toArray(arguments);  // efficient arraycopy call in ArrayList
+			// efficient arraycopy call in ArrayList
+			exceptions.toArray(arguments);
 			arguments[arguments.length - 1] = handlerMethod;
+			// 调用invokeAndHandle方法和普通控制器的方法一样
 			exceptionHandlerMethod.invokeAndHandle(webRequest, mavContainer, arguments);
 		}
 		catch (Throwable invocationEx) {

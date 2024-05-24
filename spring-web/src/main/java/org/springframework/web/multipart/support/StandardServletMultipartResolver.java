@@ -113,6 +113,7 @@ public class StandardServletMultipartResolver implements MultipartResolver {
 
 	@Override
 	public boolean isMultipart(HttpServletRequest request) {
+		// 默认匹配 multipart/ 开头的内容类型
 		return StringUtils.startsWithIgnoreCase(request.getContentType(),
 				(this.strictServletCompliance ? MediaType.MULTIPART_FORM_DATA_VALUE : "multipart/"));
 	}

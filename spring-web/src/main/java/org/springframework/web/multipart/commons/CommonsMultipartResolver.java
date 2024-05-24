@@ -173,7 +173,9 @@ public class CommonsMultipartResolver extends CommonsFileUploadSupport
 			};
 		}
 		else {
+			// 调用parseRequest方法进行解析
 			MultipartParsingResult parsingResult = parseRequest(request);
+			// 对普通的请求对象进行了封装变为文件上传请求对象
 			return new DefaultMultipartHttpServletRequest(request, parsingResult.getMultipartFiles(),
 					parsingResult.getMultipartParameters(), parsingResult.getMultipartParameterContentTypes());
 		}
